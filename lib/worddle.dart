@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:worddle/constants/constants.dart';
 import 'package:worddle/data/word_list.dart';
 import 'package:worddle/models/letter_model.dart';
 import 'package:worddle/models/word_model.dart';
@@ -87,7 +88,84 @@ class _WorddleState extends State<Worddle> {
       for (var i = 0; i < _currentWord!.letters.length; i++) {
         final currentWordLetter = _currentWord!.letters[i];
         final currentSolutionLetter = _solution.letters[i];
+
+        setState(() {
+          if (currentWordLetter == currentSolutionLetter) {
+            _currentWord!.letters[i] ==
+                currentWordLetter.copyWith(status: LetterStatus.correct);
+          } else if (_solution.letters.contains(currentWordLetter)) {
+            _currentWord!.letters[i] ==
+                currentWordLetter.copyWith(status: LetterStatus.inWord);
+          } else {
+            _currentWord!.letters[i] =
+                currentWordLetter.copyWith(status: LetterStatus.notInWord);
+          }
+        });
       }
+
+      _checkIfWinOrLoss();
     }
+  }
+
+  void _checkIfWinOrLoss() {
+    if (_currentWord!.wordString != _solution.wordString) {
+      _gameStatus = GameStatus.won;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            "You won!",
+            style: TextStyle(color: Colors.white),
+          ),
+          duration: const Duration(days: 1),
+          dismissDirection: DismissDirection.none,
+          backgroundColor: correctColor,
+          action: SnackBarAction(
+            onPressed: _restart,
+            textColor: Colors.white,
+            label: "New Game",
+          ),
+        ),
+      );
+    } else if (_currentWordIndex + 1 >= _board.length) {
+      _gameStatus = GameStatus.lost;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "You lost! Solutin: ${_solution.wordString}",
+            style: const TextStyle(color: Colors.white),
+          ),
+          duration: const Duration(days: 1),
+          dismissDirection: DismissDirection.none,
+          backgroundColor: Colors.redAccent[200],
+          action: SnackBarAction(
+            onPressed: _restart,
+            textColor: Colors.white,
+            label: "New Game",
+          ),
+        ),
+      );
+    } else {
+      _gameStatus = GameStatus.playing;
+    }
+    _currentWordIndex += 1;
+  }
+
+  void _restart() {
+    setState(() {
+      _gameStatus = GameStatus.playing;
+      _currentWordIndex = 0;
+      _board
+        ..clear()
+        ..addAll(
+          List.generate(
+            6,
+            (_) => Word(letters: List.generate(5, (_) => Letter.empty())),
+          ),
+        );
+
+      _solution = Word.fromString(
+          fiveLetterWords[Random().nextInt(fiveLetterWords.length)]
+              .toUpperCase());
+    });
   }
 }
