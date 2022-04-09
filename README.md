@@ -1,6 +1,6 @@
 # worddle
 
-A new Flutter project.
+#### BORED
 
 ## Getting Started
 
