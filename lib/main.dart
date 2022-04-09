@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:worddle/worddle.dart';
 
 void main() => runApp(const MyApp());
 
@@ -11,7 +12,7 @@ class MyApp extends StatelessWidget {
       title: "Worrdle",
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: Colors.black),
-      home: Worddle(),
+      home: const Worddle(),
     );
   }
 }
