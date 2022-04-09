@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:worddle/models/letter_model.dart';
 
 class Word extends Equatable {

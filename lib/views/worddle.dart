@@ -1,12 +1,13 @@
 import 'dart:math';
 
+import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 import 'package:worddle/constants/constants.dart';
 import 'package:worddle/data/word_list.dart';
 import 'package:worddle/models/letter_model.dart';
 import 'package:worddle/models/word_model.dart';
 import 'package:worddle/widgets/board.dart';
-import 'package:worddle/widgets/keyborad.dart';
+import 'package:worddle/widgets/keyboard.dart';
 
 enum GameStatus { playing, submitting, lost, won }
 
@@ -23,6 +24,9 @@ class _WorddleState extends State<Worddle> {
   final List<Word> _board = List.generate(
       6, (_) => Word(letters: List.generate(5, (_) => Letter.empty())));
 
+  final List<List<GlobalKey<FlipCardState>>> _flipCardKeys = List.generate(
+      6, (_) => List.generate(5, (_) => GlobalKey<FlipCardState>()));
+
   int _currentWordIndex = 0;
 
   Word? get _currentWord =>
@@ -32,6 +36,8 @@ class _WorddleState extends State<Worddle> {
     fiveLetterWords[Random().nextInt(fiveLetterWords.length)].toUpperCase(),
   );
 
+  final Set<Letter> _keyboardLetters = {};
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +46,7 @@ class _WorddleState extends State<Worddle> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
-          "Worddle",
+          "WORDDLE",
           style: TextStyle(
             fontSize: 36.0,
             fontWeight: FontWeight.bold,
@@ -51,12 +57,23 @@ class _WorddleState extends State<Worddle> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Board(board: _board),
-          const SizedBox(height: 80.0),
+          Board(board: _board, flipCardKeys: _flipCardKeys),
+          SizedBox(
+            height: MediaQuery.of(context).size.height * (0.05),
+          ),
           Keyboard(
             onKeyTapped: _onKeyTapped,
             onDeleteTapped: _onDeleteTapped,
             onEnterTapped: _onEnterTapped,
+            letters: _keyboardLetters,
+          ),
+          const Divider(),
+          const Text(
+            "© 2022, Siddhant Mishra",
+            style: TextStyle(
+              fontSize: 10.0,
+              color: Colors.grey,
+            ),
           ),
         ],
       ),
@@ -79,7 +96,7 @@ class _WorddleState extends State<Worddle> {
     }
   }
 
-  void _onEnterTapped() {
+  Future<void> _onEnterTapped() async {
     if (_gameStatus == GameStatus.playing &&
         _currentWord != null &&
         !_currentWord!.letters.contains(Letter.empty())) {
@@ -101,6 +118,21 @@ class _WorddleState extends State<Worddle> {
                 currentWordLetter.copyWith(status: LetterStatus.notInWord);
           }
         });
+
+        final letter = _keyboardLetters.firstWhere(
+          (element) => element.val == currentWordLetter.val,
+          orElse: () => Letter.empty(),
+        );
+        if (letter.status != LetterStatus.correct) {
+          _keyboardLetters
+              .removeWhere((element) => element.val == currentWordLetter.val);
+          _keyboardLetters.add(_currentWord!.letters[i]);
+        }
+
+        await Future.delayed(
+          const Duration(milliseconds: 150),
+          () => _flipCardKeys[_currentWordIndex][i].currentState?.toggleCard(),
+        );
       }
 
       _checkIfWinOrLoss();
@@ -108,7 +140,7 @@ class _WorddleState extends State<Worddle> {
   }
 
   void _checkIfWinOrLoss() {
-    if (_currentWord!.wordString != _solution.wordString) {
+    if (_currentWord!.wordString == _solution.wordString) {
       _gameStatus = GameStatus.won;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -166,6 +198,17 @@ class _WorddleState extends State<Worddle> {
       _solution = Word.fromString(
           fiveLetterWords[Random().nextInt(fiveLetterWords.length)]
               .toUpperCase());
+
+      _flipCardKeys
+        ..clear()
+        ..addAll(
+          List.generate(
+            6,
+            (_) => List.generate(6, (_) => GlobalKey<FlipCardState>()),
+          ),
+        );
+
+      _keyboardLetters.clear();
     });
   }
 }

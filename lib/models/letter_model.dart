@@ -6,11 +6,10 @@ enum LetterStatus { initial, notInWord, inWord, correct }
 
 class Letter extends Equatable {
   final String val;
-
+  final LetterStatus status;
   const Letter({required this.val, this.status = LetterStatus.initial});
 
   factory Letter.empty() => const Letter(val: '');
-  final LetterStatus status;
 
   Color get backgroundColor {
     switch (status) {

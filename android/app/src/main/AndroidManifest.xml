@@ -2,7 +2,7 @@
     package="com.example.worddle">
    <application
         android:label="worddle"
-        android:name="Worddle"
+        android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
