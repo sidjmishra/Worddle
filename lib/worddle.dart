@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:worddle/data/word_list.dart';
 import 'package:worddle/models/letter_model.dart';
 import 'package:worddle/models/word_model.dart';
+import 'package:worddle/widgets/board.dart';
+import 'package:worddle/widgets/keyborad.dart';
 
 enum GameStatus { playing, submitting, lost, won }
 
@@ -36,8 +38,56 @@ class _WorddleState extends State<Worddle> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("Worddle", style: TextStyle(fontSize: 36.0)),
+        title: const Text(
+          "Worddle",
+          style: TextStyle(
+            fontSize: 36.0,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 4,
+          ),
+        ),
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Board(board: _board),
+          const SizedBox(height: 80.0),
+          Keyboard(
+            onKeyTapped: _onKeyTapped,
+            onDeleteTapped: _onDeleteTapped,
+            onEnterTapped: _onEnterTapped,
+          ),
+        ],
       ),
     );
+  }
+
+  void _onKeyTapped(String val) {
+    if (_gameStatus == GameStatus.playing) {
+      setState(() {
+        _currentWord?.addLetter(val);
+      });
+    }
+  }
+
+  void _onDeleteTapped() {
+    if (_gameStatus == GameStatus.playing) {
+      setState(() {
+        _currentWord?.removeLetter();
+      });
+    }
+  }
+
+  void _onEnterTapped() {
+    if (_gameStatus == GameStatus.playing &&
+        _currentWord != null &&
+        !_currentWord!.letters.contains(Letter.empty())) {
+      _gameStatus = GameStatus.submitting;
+
+      for (var i = 0; i < _currentWord!.letters.length; i++) {
+        final currentWordLetter = _currentWord!.letters[i];
+        final currentSolutionLetter = _solution.letters[i];
+      }
+    }
   }
 }
